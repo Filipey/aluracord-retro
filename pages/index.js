@@ -1,38 +1,9 @@
 import { Box, Button, Text, TextField, Image } from '@skynexui/components'
+import { useState } from 'react'
+import { useRouter } from 'next/router'
 import appConfig from '../config.json'
 
-function GlobalStyle() {
-  return (
-    <style global jsx>{`
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-        list-style: none;
-      }
-      body {
-        font-family: 'Open Sans', sans-serif;
-      }
-      /* App fit Height */
-      html,
-      body,
-      #__next {
-        min-height: 100vh;
-        display: flex;
-        flex: 1;
-      }
-      #__next {
-        flex: 1;
-      }
-      #__next > * {
-        flex: 1;
-      }
-      /* ./App fit Height */
-    `}</style>
-  )
-}
-
-function Title(props) {
+export function Title(props) {
   const Tag = props.tag || 'h1'
   return (
     <>
@@ -49,11 +20,18 @@ function Title(props) {
 }
 
 export default function HomePage() {
-  const username = 'Filipey'
+  const [username, setUsername] = useState()
+  const router = useRouter()
+
+  function handleUsername(event) {
+    const username = event.target.value
+    console.log(event)
+
+    setUsername(username)
+  }
 
   return (
     <>
-      <GlobalStyle />
       <Box
         styleSheet={{
           display: 'flex',
@@ -85,6 +63,10 @@ export default function HomePage() {
           {/* Formulário */}
           <Box
             as="form"
+            onSubmit={event => {
+              event.preventDefault()
+              router.push('/chat')
+            }}
             styleSheet={{
               display: 'flex',
               flexDirection: 'column',
@@ -108,6 +90,8 @@ export default function HomePage() {
 
             <TextField
               fullWidth
+              onChange={handleUsername}
+              placeholder="Digite seu usuário do GitHub"
               textFieldColors={{
                 neutral: {
                   textColor: appConfig.theme.colors.neutrals[200],
