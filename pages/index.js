@@ -1,5 +1,5 @@
 import { Box, Button, Text, TextField, Image } from '@skynexui/components'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import appConfig from '../config.json'
 
@@ -20,15 +20,24 @@ export function Title(props) {
 }
 
 export default function HomePage() {
-  const [username, setUsername] = useState()
+  const [username, setUsername] = useState('')
+  const [data, setData] = useState({ name: '', location: '' })
+  const errorImage =
+    'https://cdn.pixabay.com/photo/2017/02/12/21/29/false-2061132__340.png'
   const router = useRouter()
 
   function handleUsername(event) {
     const username = event.target.value
-    console.log(event)
-
     setUsername(username)
   }
+
+  useEffect(() => {
+    fetch(`https://api.github.com/users/${username}`)
+      .then(res => res.json())
+      .then(data => {
+        setData(data)
+      })
+  }, [])
 
   return (
     <>
@@ -101,17 +110,21 @@ export default function HomePage() {
                 }
               }}
             />
-            <Button
-              type="submit"
-              label="Entrar"
-              fullWidth
-              buttonColors={{
-                contrastColor: appConfig.theme.colors.neutrals['000'],
-                mainColor: appConfig.theme.colors.primary[500],
-                mainColorLight: appConfig.theme.colors.primary[400],
-                mainColorStrong: appConfig.theme.colors.primary[600]
-              }}
-            />
+            {username.length > 2 &&
+              username.length !== null &&
+              username.trim() && (
+                <Button
+                  type="submit"
+                  label="Entrar"
+                  fullWidth
+                  buttonColors={{
+                    contrastColor: appConfig.theme.colors.neutrals['000'],
+                    mainColor: appConfig.theme.colors.primary[500],
+                    mainColorLight: appConfig.theme.colors.primary[400],
+                    mainColorStrong: appConfig.theme.colors.primary[600]
+                  }}
+                />
+              )}
           </Box>
           {/* Formulário */}
 
@@ -136,7 +149,13 @@ export default function HomePage() {
                 borderRadius: '50%',
                 marginBottom: '16px'
               }}
-              src={`https://github.com/${username}.png`}
+              src={
+                username.length > 2 &&
+                username.length !== null &&
+                username.trim()
+                  ? `https://github.com/${username}.png`
+                  : errorImage
+              }
             />
             <Text
               variant="body4"
@@ -147,7 +166,25 @@ export default function HomePage() {
                 borderRadius: '1000px'
               }}
             >
-              {username}
+              {username.length > 2 && username !== null && username.trim()
+                ? username
+                : 'Não há nenhum usuário'}
+            </Text>
+            <Text
+              variant="body4"
+              styleSheet={{
+                color: appConfig.theme.colors.neutrals[300]
+              }}
+            >
+              {data.name}
+            </Text>
+            <Text
+              variant="body4"
+              styleSheet={{
+                color: appConfig.theme.colors.neutrals[300]
+              }}
+            >
+              {data.location}
             </Text>
           </Box>
           {/* Photo Area */}
