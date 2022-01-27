@@ -2,11 +2,14 @@ import { Box, Text, TextField, Image, Button } from '@skynexui/components'
 import appConfig from '../config.json'
 import { useEffect, useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
+import { useRouter } from 'next/router'
 
 export default function ChatPage({ SUPABASE_ANON_KEY, SUPABASE_URL }) {
   const [message, setMessage] = useState('')
   const [messageList, setMessageList] = useState([])
   const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+  const router = useRouter()
+  const { username } = router.query
 
   useEffect(() => {
     supabaseClient
@@ -21,8 +24,8 @@ export default function ChatPage({ SUPABASE_ANON_KEY, SUPABASE_URL }) {
 
   function handleNewMessage(newMessage) {
     const message = {
-      id: messageList.length + 1,
-      de: sessionStorage.getItem('user'),
+      // id: messageList.length + 1,
+      de: username,
       text: newMessage
     }
 
@@ -174,7 +177,7 @@ function Header() {
 
 function MessageList(props) {
   const handleDeleteMessage = props.handleDeleteMessage
-  const user = sessionStorage.getItem('user')
+  const username = props.username
 
   return (
     <Box
