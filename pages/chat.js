@@ -1,10 +1,23 @@
 import { Box, Text, TextField, Image, Button } from '@skynexui/components'
 import appConfig from '../config.json'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { createClient } from '@supabase/supabase-js'
 
-export default function ChatPage() {
+export default function ChatPage({ SUPABASE_ANON_KEY, SUPABASE_URL }) {
   const [message, setMessage] = useState('')
   const [messageList, setMessageList] = useState([])
+  const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+  useEffect(() => {
+    supabaseClient
+      .from('Messages')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .then(({ data }) => {
+        console.log('Dados: ', data)
+        setMessageList(data)
+      })
+  }, [])
 
   function handleNewMessage(newMessage) {
     const message = {
@@ -17,7 +30,13 @@ export default function ChatPage() {
       return
     }
 
-    setMessageList([message, ...messageList])
+    supabaseClient
+      .from('Messages')
+      .insert([message])
+      .then(({ data }) => {
+        setMessageList([data[0], ...messageList])
+      })
+
     setMessage('')
   }
 
@@ -196,7 +215,7 @@ function MessageList(props) {
                   display: 'inline-block',
                   marginRight: '8px'
                 }}
-                src={`https://github.com/${user}.png`}
+                src={`https://github.com/${message.de}.png`}
               />
               <Text tag="strong">{message.de}</Text>
               <Text
@@ -237,4 +256,15 @@ function MessageList(props) {
       })}
     </Box>
   )
+}
+
+export const getServerSideProps = async () => {
+  const { SUPABASE_ANON_KEY, SUPABASE_URL } = process.env
+
+  return {
+    props: {
+      SUPABASE_ANON_KEY,
+      SUPABASE_URL
+    }
+  }
 }
