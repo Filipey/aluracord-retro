@@ -29,6 +29,7 @@ export default function HomePage() {
   function handleUsername(event) {
     const username = event.target.value
     setUsername(username)
+    sessionStorage.setItem('user', username)
   }
 
   useEffect(() => {

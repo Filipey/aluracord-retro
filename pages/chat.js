@@ -9,7 +9,7 @@ export default function ChatPage() {
   function handleNewMessage(newMessage) {
     const message = {
       id: messageList.length + 1,
-      de: 'Filipey',
+      de: sessionStorage.getItem('user'),
       text: newMessage
     }
 
@@ -155,6 +155,7 @@ function Header() {
 
 function MessageList(props) {
   const handleDeleteMessage = props.handleDeleteMessage
+  const user = sessionStorage.getItem('user')
 
   return (
     <Box
@@ -195,7 +196,7 @@ function MessageList(props) {
                   display: 'inline-block',
                   marginRight: '8px'
                 }}
-                src={`https://github.com/Filipey.png`}
+                src={`https://github.com/${user}.png`}
               />
               <Text tag="strong">{message.de}</Text>
               <Text
