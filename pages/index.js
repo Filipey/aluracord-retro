@@ -36,9 +36,10 @@ export default function HomePage() {
     fetch(`https://api.github.com/users/${username}`)
       .then(res => res.json())
       .then(data => {
+        console.log(data)
         setData(data)
       })
-  }, [])
+  }, [username]) // Api github limit exceeded
 
   return (
     <>
