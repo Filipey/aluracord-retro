@@ -3,13 +3,29 @@ import appConfig from '../config.json'
 import { useEffect, useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { useRouter } from 'next/router'
+import { ButtonSendSticker } from '../src/components/ButtonSendSticker'
 
-export default function ChatPage({ SUPABASE_ANON_KEY, SUPABASE_URL }) {
+const SUPABASE_ANON_KEY =
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlhdCI6MTY0MzMwNDQxMCwiZXhwIjoxOTU4ODgwNDEwfQ.7Ez84kEdCB5YkBN_J94wddgYWZog7PZX7gJVmJ8WElg'
+
+const SUPABASE_URL = 'https://pipkzufffguhrlvjiifo.supabase.co'
+
+const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+export default function ChatPage() {
   const [message, setMessage] = useState('')
   const [messageList, setMessageList] = useState([])
-  const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
   const router = useRouter()
   const { username } = router.query
+
+  function realTimeMessagesListener(addMessage) {
+    return supabaseClient
+      .from('Messages')
+      .on('INSERT', res => {
+        addMessage(res.new)
+      })
+      .subscribe()
+  }
 
   useEffect(() => {
     supabaseClient
@@ -17,9 +33,14 @@ export default function ChatPage({ SUPABASE_ANON_KEY, SUPABASE_URL }) {
       .select('*')
       .order('created_at', { ascending: false })
       .then(({ data }) => {
-        console.log('Dados: ', data)
         setMessageList(data)
       })
+
+    realTimeMessagesListener(newMessage => {
+      setMessageList(actualListValue => {
+        return [newMessage, ...actualListValue]
+      })
+    })
   }, [])
 
   function handleNewMessage(newMessage) {
@@ -36,9 +57,7 @@ export default function ChatPage({ SUPABASE_ANON_KEY, SUPABASE_URL }) {
     supabaseClient
       .from('Messages')
       .insert([message])
-      .then(({ data }) => {
-        setMessageList([data[0], ...messageList])
-      })
+      .then(({ data }) => {})
 
     setMessage('')
   }
@@ -129,14 +148,30 @@ export default function ChatPage({ SUPABASE_ANON_KEY, SUPABASE_URL }) {
                 color: appConfig.theme.colors.neutrals[200]
               }}
             />
+            <ButtonSendSticker
+              onStickerClick={sticker => {
+                handleNewMessage(':sticker: ' + sticker)
+              }}
+            />
             <Button
               iconName="arrowRight"
+              styleSheet={{
+                borderRadius: '50%',
+                padding: '0 3px 0 0',
+                minWidth: '50px',
+                minHeight: '50px',
+                fontSize: '20px',
+                marginBottom: '8px',
+                lineHeight: '0',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
               onClick={event => {
                 event.preventDefault()
                 handleNewMessage(message)
               }}
               type="submit"
-              size="xl"
               buttonColors={{
                 contrastColor: appConfig.theme.colors.neutrals['000'],
                 mainColor: appConfig.theme.colors.primary[500],
@@ -177,7 +212,6 @@ function Header() {
 
 function MessageList(props) {
   const handleDeleteMessage = props.handleDeleteMessage
-  const username = props.username
 
   return (
     <Box
@@ -253,7 +287,11 @@ function MessageList(props) {
                 }}
               ></Button>
             </Box>
-            {message.text}
+            {message.text.startsWith(':sticker:') ? (
+              <Image src={message.text.replace(':sticker:', '')} />
+            ) : (
+              message.text
+            )}
           </Text>
         )
       })}
